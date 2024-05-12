@@ -1,6 +1,6 @@
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
-set(wildlander_output false)
+set(wildlander_output true)
 set(steam_owrt_output false)
 set(steam_mods_output true)
 
@@ -8,8 +8,8 @@ set(steam_mods_output true)
 # If you use CMake features from higher versions, update this to match.
 cmake_minimum_required(VERSION 3.21)
 # Set your project name. This will be the name of your SKSE .dll file.
-set(AUTHOR_NAME "AUTHORNAME")
-set(PRODUCT_NAME "MDDNAME")
+set(AUTHOR_NAME "Quantumyilmaz")
+set(PRODUCT_NAME "CraftingRemnants")
 project(${PRODUCT_NAME} VERSION 0.1.0.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -51,8 +51,8 @@ endif()
 #
 # To do this automatically, set the `SKYRIM_MODS_FOLDER` environment variable
 # to the path of your "mods" folder
-if(DEFINED ENV{WILDLANDER_OWRT_FOLDER} AND IS_DIRECTORY "$ENV{WILDLANDER_OWRT_FOLDER}" AND wildlander_output)
-    set(OUTPUT_FOLDER "$ENV{WILDLANDER_OWRT_FOLDER}/${PROJECT_NAME}")
+if(DEFINED ENV{WILDLANDER_MODS_FOLDER} AND IS_DIRECTORY "$ENV{WILDLANDER_MODS_FOLDER}" AND wildlander_output)
+    set(OUTPUT_FOLDER "$ENV{WILDLANDER_MODS_FOLDER}/${PROJECT_NAME}")
 elseif(DEFINED ENV{SKYRIM_OWRT_FOLDER} AND IS_DIRECTORY "$ENV{SKYRIM_OWRT_FOLDER}" AND steam_owrt_output)
     set(OUTPUT_FOLDER "$ENV{SKYRIM_OWRT_FOLDER}/${PROJECT_NAME}")
 elseif(DEFINED ENV{SKYRIM_MODS_FOLDER} AND IS_DIRECTORY "$ENV{SKYRIM_MODS_FOLDER}" AND steam_mods_output)
@@ -74,8 +74,23 @@ set(BUILD_TESTS OFF CACHE BOOL " " FORCE)
 add_subdirectory("$ENV{CLIBNG_ROOT}" ${CMAKE_CURRENT_BINARY_DIR}/_deps/clib-build)
 get_target_property(commonlib_src_dir CommonLibSSE SOURCE_DIR)
 
+
 # CLIB-UTIL
 find_path(CLIB_UTIL_INCLUDE_DIRS "ClibUtil/utils.hpp")
+
+#YAML-CPP
+FetchContent_Declare(
+  yaml-cpp
+  GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
+  GIT_TAG master # Can be a tag (yaml-cpp-x.x.x), a commit hash, or a branch name (master)
+)
+FetchContent_GetProperties(yaml-cpp)
+
+if(NOT yaml-cpp_POPULATED)
+  message(STATUS "Fetching yaml-cpp...")
+  FetchContent_Populate(yaml-cpp)
+  add_subdirectory(${yaml-cpp_SOURCE_DIR} ${yaml-cpp_BINARY_DIR})
+endif()
 
 file(
   GLOB_RECURSE
@@ -109,6 +124,8 @@ target_include_directories(
 
 include(cmake/headerlist.cmake)
 include(cmake/sourcelist.cmake)
+
+target_link_libraries(${PROJECT_NAME} PUBLIC yaml-cpp::yaml-cpp)
 
 install(TARGETS ${PROJECT_NAME}
         DESTINATION "${CMAKE_INSTALL_LIBDIR}")
