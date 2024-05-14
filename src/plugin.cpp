@@ -1,5 +1,7 @@
 #include "Events.h"
 
+
+
 void OnMessage(SKSE::MessagingInterface::Message* message) {
     if (message->type == SKSE::MessagingInterface::kDataLoaded) {
         // Start
@@ -10,6 +12,8 @@ void OnMessage(SKSE::MessagingInterface::Message* message) {
     }
     if (message->type == SKSE::MessagingInterface::kNewGame || message->type == SKSE::MessagingInterface::kPostLoadGame) {
         // Post-load
+        auto asd = new AnimGraphSinkDelegate();
+        asd->Run();
     }
 }
 

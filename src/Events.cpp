@@ -36,6 +36,8 @@ RE::BSEventNotifyControl ourEventSink::ProcessEvent(const RE::TESContainerChange
 
 RE::BSEventNotifyControl ourEventSink::ProcessEvent(const RE::TESFurnitureEvent* event,
                                                     RE::BSTEventSource<RE::TESFurnitureEvent>*) {
+
+    logger::trace("Furniture Event");
     
     if (!event) return RE::BSEventNotifyControl::kContinue;
     if (!event->actor) return RE::BSEventNotifyControl::kContinue;
@@ -66,6 +68,11 @@ RE::BSEventNotifyControl ourEventSink::ProcessEvent(const RE::TESFurnitureEvent*
     return RE::BSEventNotifyControl::kContinue;
 }
 
+RE::BSEventNotifyControl ourEventSink::ProcessEvent(const RE::BGSActorEvent* event,
+                                                    RE::BSTEventSource<RE::BGSActorEvent>*) {
+    return RE::BSEventNotifyControl::kContinue;
+}
+
 void ourEventSink::BenchEnter(const std::uint8_t bench_no) {
     if (bench_no == 0) return;
 	if (!M->IsBenchSupported(bench_no)) return;
@@ -77,3 +84,56 @@ void ourEventSink::BenchExit() {
 	bench = 0;
 	counts.clear();
 }
+
+
+auto BSAnimationGraphEventHandler::GetSingleton() -> BSAnimationGraphEventHandler* {
+    logger::trace("BSAnimationGraphEventHandler::GetSingleton");
+    static BSAnimationGraphEventHandler singleton;
+    return std::addressof(singleton);
+}
+
+auto BSAnimationGraphEventHandler::ProcessEvent(const RE::BSAnimationGraphEvent* a_event,
+                                                RE::BSTEventSource<RE::BSAnimationGraphEvent>* a_eventSource)
+    -> EventResult {
+    if (!a_event) return EventResult::kContinue;
+    logger::info("BSAnimationGraphEventHandler::ProcessEvent");
+
+    logger::info("BSAnimationGraphEventHandler::ProcessEvent: holder: {}", a_event->holder->GetName());
+    logger::info("BSAnimationGraphEventHandler::ProcessEvent: tag: {}", a_event->tag);
+
+    return EventResult::kContinue;
+}
+
+bool AnimationGraphEventHandler(RE::BSTEventSink<RE::BSAnimationGraphEvent>* a_sink) {
+    const auto player = RE::PlayerCharacter::GetSingleton();
+    RE::BSAnimationGraphManagerPtr graphManager;
+    player->GetAnimationGraphManager(graphManager);
+    if (graphManager) {
+        auto sinked = false;
+        for (auto& animationGraph : graphManager->graphs) {
+            if (sinked) {
+                break;
+            }
+
+            auto eventSource = animationGraph->GetEventSource<RE::BSAnimationGraphEvent>();
+            for (auto& sink : eventSource->sinks) {
+                if (sink == a_sink) {
+                    sinked = true;
+                    break;
+                }
+            }
+        }
+
+        if (!sinked) {
+            graphManager->graphs.front()->GetEventSource<RE::BSAnimationGraphEvent>()->AddEventSink(a_sink);
+            logger::info("AnimationGraphEventHandler: Sink added");
+            return true;
+        }
+    }
+    return false;
+}
+
+
+void AnimGraphSinkDelegate::Run() { AnimationGraphEventHandler(BSAnimationGraphEventHandler::GetSingleton()); }
+
+void AnimGraphSinkDelegate::Dispose() { delete this; }

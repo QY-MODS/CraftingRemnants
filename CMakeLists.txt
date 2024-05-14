@@ -1,6 +1,6 @@
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
-set(wildlander_output true)
+set(wildlander_output false)
 set(steam_owrt_output false)
 set(steam_mods_output true)
 

@@ -10,5 +10,6 @@ using RefID = RE::FormID;
 using Count = float;
 
 using Remnants = std::map<FormID, std::pair<Count, std::uint8_t>>;
+//using Remnants = std::map<std::pair<FormID,std::uint8_t>, Count>;
 
 const RefID player_refid = 20;
