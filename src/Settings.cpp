@@ -40,7 +40,7 @@ Preset _parsePreset(const YAML::Node& config) {
         	return Preset();
         }
 
-        preset.items[temp_formid] = std::make_pair(temp_count, temp_bench);
+        preset.items[std::make_pair(temp_formid, temp_bench)] = temp_count;
     }
     return preset;
 }
@@ -89,16 +89,16 @@ const bool Preset::CheckIntegrity() {
 		logger::error("Items are empty.");
         return InitFailed();
 	}
-    for (const auto& [formid, count_bench] : items) {
-        if (count_bench.first == 0) {
+    for (const auto& [formid_bench, count] : items) {
+        if (count == 0) {
 			logger::error("Count is 0.");
             return InitFailed();
 		}
-        if (count_bench.second == 0) {
+        if (formid_bench.second == 0) {
 			logger::error("Bench is 0.");
             return InitFailed();
 		}
-
+        const auto formid = formid_bench.first;
         if (!Utilities::FunctionsSkyrim::GetFormByID(formid)) {
 			logger::error("Formid is null for {}", formid);
             return InitFailed();

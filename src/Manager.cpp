@@ -38,8 +38,8 @@ const Remnants Manager::GetRemnants(const FormID used_item_formid) {
 void Manager::Init() {
 	presets = parsePresets();
     for (const auto& [ownerlist,preset] : presets) {
-		for (const auto& [formid, count_bench] : preset.items) {
-            benches.insert(count_bench.second);
+		for (const auto& [formid_bench, count_bench] : preset.items) {
+            benches.insert(formid_bench.second);
 		}
 	}
 };
